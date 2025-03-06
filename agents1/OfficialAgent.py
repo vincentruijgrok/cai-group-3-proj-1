@@ -54,6 +54,7 @@ class BaselineAgent(ArtificialBrain):
         self._room_vics = []
         self._searched_rooms = []
         self._current_rooms = [] # rooms that are currently being searched
+        self._rooms_searched_by_me = [] # rooms that the agent searched
         self._presumably_empty_rooms = [] # rooms that the human declared empty
         self._found_victims = []
         self._collected_victims = []
@@ -750,6 +751,8 @@ class BaselineAgent(ArtificialBrain):
                                         self._searched_rooms.append(self._door['room_name'])
                                     if self._door['room_name'] in self._presumably_empty_rooms:
                                         self._presumably_empty_rooms.remove(self._door['room_name'])
+                                    if self._door['room_name'] not in self._rooms_searched_by_me:
+                                        self._rooms_searched_by_me.append(self._door['room_name'])
                                     # Do not continue searching the rest of the area but start planning to rescue the victim
                                     self._phase = Phase.FIND_NEXT_GOAL
 
@@ -808,6 +811,8 @@ class BaselineAgent(ArtificialBrain):
                     self._searched_rooms.append(self._door['room_name'])
                 if self._door['room_name'] in self._presumably_empty_rooms:
                     self._presumably_empty_rooms.remove(self._door['room_name'])
+                if self._door['room_name'] not in self._rooms_searched_by_me:
+                    self._rooms_searched_by_me.append(self._door['room_name'])
                 # Make a plan to rescue a found critically injured victim if the human decides so
                 if self.received_messages_content and self.received_messages_content[
                     -1] == 'Rescue' and 'critical' in self._recent_vic:
@@ -871,6 +876,7 @@ class BaselineAgent(ArtificialBrain):
                 if self.received_messages_content and self.received_messages_content[-1] == 'Continue':
                     self._answered = True
                     self._waiting = False
+                    self._waiting_for_response = False
                     self._todo.append(self._recent_vic)
                     self._recent_vic = None
                     self._phase = Phase.FIND_NEXT_GOAL
@@ -1062,6 +1068,9 @@ class BaselineAgent(ArtificialBrain):
                                 self._presumably_empty_rooms.append(room)
                             self._current_rooms.remove(room)
                         self._current_rooms.append(area)
+                    for area in self._presumably_empty_rooms:
+                        if area in self._rooms_searched_by_me:
+                            self._presumably_empty_rooms.remove(area)
                 # If a received message involves team members finding victims, add these victims and their locations to memory
                 if msg.startswith("Found:"):
                     # Identify which victim and area it concerns
