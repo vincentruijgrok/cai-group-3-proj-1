@@ -1,11 +1,4 @@
-logs/
-beliefs/currentTrustBelief.csv
-
-# from: https://github.com/github/gitignore/blob/main/Python.gitignore
-
 # Byte-compiled / optimized / DLL files
-*.pyc
-**/__pycache__/
 *.py[cod]
 *$py.class
 
